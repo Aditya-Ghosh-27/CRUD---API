@@ -107,14 +107,28 @@ app.patch("/api/users/:id", (request, resposne) => {
     params: { id },
   } = request;
   const parsedId = parseInt(id);
-  if(isNaN(parsedId)) return response.sendStatus(400);  
-  const findUserIndex = mockUsers.findIndex(user => {
-    user.id === parsedId
-  })
+  if (isNaN(parsedId)) return response.sendStatus(400);
+  const findUserIndex = mockUsers.findIndex((user) => {
+    user.id === parsedId;
+  });
 
-  if(findUserIndex === -1) return response.sendStatus(404);
+  if (findUserIndex === -1) return response.sendStatus(404);
 
-  mockUsers[findUserIndex] = { ...mockUsers[findUserIndex], ...body};
+  mockUsers[findUserIndex] = { ...mockUsers[findUserIndex], ...body };
+});
+
+// Delete request
+
+app.delete("/api/users/:id", (request, response) => {
+  const {
+    params: { id },
+  } = request;
+
+  const parsedId = parseInt(id);
+  if(isNaN(parsedId)) return response.sendStatus(400);
+  const findUserIndex = mockUsers.findIndex(user => user.id === parsedId);
+  if (findUserIndex === -1) return response.sendStatus(404);
+  mockUsers.splice(findUserIndex, 1);
 });
 
 app.listen(PORT, () => console.log(`Server started at PORT: ${PORT}`));
