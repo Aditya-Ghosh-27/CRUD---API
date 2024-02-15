@@ -9,6 +9,9 @@ const mockUsers = [
   { id: 1, username: "aditya", displayName: "Aditya" },
   { id: 2, username: "anindo", displayName: "Anindo" },
   { id: 3, username: "firu", displayName: "Firdous" },
+  { id: 4, username: "mohok", displayName: "Mohok" },
+  { id: 5, username: "suvo", displayName: "Suvodeep" },
+  { id: 6, username: "priyo", displayName: "Priyonjeet" },
 ];
 
 // req and res are both paramters of a function, but they are objects by nature
@@ -21,8 +24,22 @@ app.get("/", function (request, response) {
   response.sendStatus(201).send({ msg: "Hello" });
 });
 
+
+// Learnt how to deal with query parameters
 app.get("/api/users", function (request, response) {
-  response.send(mockUsers);
+  console.log(request.query);
+  const {
+    query: { filter, value },
+  } = request; // since request is an object
+  // when filter and value are undefined
+  if(!filter && !value){
+    return response.send(mockUsers);
+  }
+  if(filter && value){
+    return response.send(
+      mockUsers.filter(user => user.username.includes(value))
+    )
+  }
 });
 
 // Route Parameters
@@ -33,14 +50,15 @@ app.get("/api/users/:id", (request, response) => {
   // Validation for your incoming GET requests
   const parsedID = parseInt(request.params.id);
   console.log(parsedID);
-  if(isNaN(parsedID)){
-    return response.sendStatus(400).send({msg: "Bad Request. Invalid ID "});
+  if (isNaN(parsedID)) {
+    return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID " });
   }
-  const findUser = mockUsers.find(user => user.id === parsedID);
-  if(!findUser){
+  const findUser = mockUsers.find((user) => user.id === parsedID);
+  if (!findUser) {
     return response.sendStatus(404);
   }
   return response.send(findUser);
+  // return response.send(mockUsers[parsedID - 1]);
 });
 
 app.get("/api/products", (request, response) => {
@@ -58,19 +76,3 @@ app.post("/groceries", (request, response) => {
 });
 
 app.listen(PORT, () => console.log(`Server started at PORT: ${PORT}`));
-
-// console.log(request.params.id);
-//   // Validation for your incoming get  requests
-//   const parsedID = parseInt(request.params.id);
-//   console.log(parsedID);
-//   if (isNaN(parsedID)) {
-//     return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID" });
-//   }
-
-//   const findUser = mockUsers.find(user => {
-//     user.id === parsedID;
-//   });
-//   if (!findUser){
-//     return response.sendStatus(404);
-//   }
-//   return response.send(findUser);
