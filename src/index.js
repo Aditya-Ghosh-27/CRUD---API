@@ -6,9 +6,9 @@ app.use(express.json());
 app.use(express.urlencoded());
 
 const mockUsers = [
-  { id:1, username: "aditya", displayName: "Aditya" },
-  { id:2, username: "", displayName: "" },
-  { id:3, username: "", displayName: "" },
+  { id: 1, username: "aditya", displayName: "Aditya" },
+  { id: 2, username: "anindo", displayName: "Anindo" },
+  { id: 3, username: "firu", displayName: "Firdous" },
 ];
 
 // req and res are both paramters of a function, but they are objects by nature
@@ -30,20 +30,16 @@ app.get("/api/users", function (request, response) {
 // request.params is an object which shows the route variable as an object and request.params.id will give us the value of the route variable.
 
 app.get("/api/users/:id", (request, response) => {
-  console.log(request.params.id);
-  // Validation for your incoming get  requests
+  // Validation for your incoming GET requests
   const parsedID = parseInt(request.params.id);
   console.log(parsedID);
-  if (isNaN(parsedID)) {
-    return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID" });
+  if(isNaN(parsedID)){
+    return response.sendStatus(400).send({msg: "Bad Request. Invalid ID "});
   }
-
-  const findUser = mockUsers.find(user => {
-    user.id === parsedID;
-  });
-  if (!findUser){
+  const findUser = mockUsers.find(user => user.id === parsedID);
+  if(!findUser){
     return response.sendStatus(404);
-  } 
+  }
   return response.send(findUser);
 });
 
@@ -62,3 +58,19 @@ app.post("/groceries", (request, response) => {
 });
 
 app.listen(PORT, () => console.log(`Server started at PORT: ${PORT}`));
+
+// console.log(request.params.id);
+//   // Validation for your incoming get  requests
+//   const parsedID = parseInt(request.params.id);
+//   console.log(parsedID);
+//   if (isNaN(parsedID)) {
+//     return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID" });
+//   }
+
+//   const findUser = mockUsers.find(user => {
+//     user.id === parsedID;
+//   });
+//   if (!findUser){
+//     return response.sendStatus(404);
+//   }
+//   return response.send(findUser);
