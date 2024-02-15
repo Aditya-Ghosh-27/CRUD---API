@@ -1,4 +1,4 @@
-import express, { response } from "express"; // imports the entire express library from the node modules
+import express, { request, response } from "express"; // imports the entire express library from the node modules
 const app = express(); // returns an instance of the exprress app
 const PORT = process.env.PORT || 3000; //So process.env.PORT || 3000 means: whatever is in the environment variable PORT, or 3000 if there's nothing there.
 
@@ -49,9 +49,9 @@ app.get("/api/users", function (request, response) {
 
 app.get("/api/users/:id", (request, response) => {
   // Validation for your incoming GET requests
-  const parsedID = parseInt(request.params.id);
-  console.log(parsedID);
-  if (isNaN(parsedID)) {
+  const parsedId = parseInt(request.params.id);
+  console.log(parsedId);
+  if (isNaN(parsedId)) {
     return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID " });
   }
   const findUser = mockUsers.find((user) => user.id === parsedID);
@@ -74,6 +74,29 @@ app.post("/api/users", (request, response) => {
   const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
   mockUsers.push(newUser);
   return response.send(mockUsers);
+});
+
+// PUT requests
+// The main difference is that a PUT request is used to replace a resource entirely, while a PATCH request is used to partially update a resource.
+// We are going to setup a put request to update a user by its id
+
+app.put("/api/users/:id", (request, response) => {
+  const {
+    body,
+    params: { id },
+  } = request;
+
+  const parsedId = parseInt(id);
+  if(isNaN(parsedId)){
+    return response.sendStatus(400);
+  }
+
+  const  findUserIndex = mockUsers.findIndex(user => user.id === parsedId);
+
+  if(findUserIndex === -1) return response.sendStatus(404);
+
+  mockUsers[findUserIndex] = { id: parsedId, ...body };
+  return response.sendStatus(200);
 });
 
 app.listen(PORT, () => console.log(`Server started at PORT: ${PORT}`));
