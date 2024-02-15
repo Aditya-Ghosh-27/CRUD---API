@@ -24,6 +24,7 @@ app.get("/", function (request, response) {
   response.sendStatus(201).send({ msg: "Hello" });
 });
 
+// Query Parameters -> Query parameters are key-value pairs that are attached to the end of a URL to provide additional information to a web server. They appear to the right of the question mark in a URL, starting with ? behind the usual web address.
 
 // Learnt how to deal with query parameters
 app.get("/api/users", function (request, response) {
@@ -32,13 +33,13 @@ app.get("/api/users", function (request, response) {
     query: { filter, value },
   } = request; // since request is an object
   // when filter and value are undefined
-  if(!filter && !value){
+  if (!filter && !value) {
     return response.send(mockUsers);
   }
-  if(filter && value){
+  if (filter && value) {
     return response.send(
-      mockUsers.filter(user => user.username.includes(value))
-    )
+      mockUsers.filter((user) => user.username.includes(value))
+    );
   }
 });
 
@@ -67,12 +68,12 @@ app.get("/api/products", (request, response) => {
 
 // Creating/adding a new resource - POST request and send all that data on a payload or a request body and this request body can be referenced from the request object
 
-app.post("/groceries", (request, response) => {
-  // We need to use a middleware function to parse the request
-  console.log(request.body);
-  jyeyijyeieyiy;
-  groceryList.push(request.body);
-  response.sendStatus(201);
+app.post("/api/users", (request, response) => {
+  // We need a middleware function to parse the incoming the request
+  const { body } = request;
+  const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
+  mockUsers.push(newUser);
+  return response.send(mockUsers);
 });
 
 app.listen(PORT, () => console.log(`Server started at PORT: ${PORT}`));
