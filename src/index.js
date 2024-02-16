@@ -1,9 +1,19 @@
 import express, { request, response } from "express"; // imports the entire express library from the node modules
 const app = express(); // returns an instance of the exprress app
+
 const PORT = process.env.PORT || 3000; //So process.env.PORT || 3000 means: whatever is in the environment variable PORT, or 3000 if there's nothing there.
 
 app.use(express.json());
 app.use(express.urlencoded());
+
+// Example of a middleware function
+const loggingMiddleware = (request, response, next) => {
+  console.log(`${request.method} - ${request.url}`);
+  next();
+};
+
+// Registering a middleware function globally so that everytime I hit a specific route, the middleware gets called immidiately
+// app.use(loggingMiddleware);
 
 const mockUsers = [
   { id: 1, username: "aditya", displayName: "Aditya" },
@@ -20,14 +30,24 @@ const mockUsers = [
 
 // The response object is responsible for sending responses back to the client
 
-app.get("/", function (request, response) {
-  response.sendStatus(201).send({ msg: "Hello" });
+// Registering a middleware function locally
+// app.get("/", loggingMiddleware, (request, response) => {
+//   response.sendStatus(201).json({ msg: "Hello" });
+// });
+
+// This is used lets the input request is missing the authorization token then you don't wanna continue to the next middleware.
+app.get("/", (request, response) => {
+  return response.sendStatus(201).json({ msg: "Hello" });
 });
 
 // Query Parameters -> Query parameters are key-value pairs that are attached to the end of a URL to provide additional information to a web server. They appear to the right of the question mark in a URL, starting with ? behind the usual web address.
 
 // Learnt how to deal with query parameters
-app.get("/api/users", function (request, response) {
+app.get("/api/users", (request, response, next) => { //Another way of declaring a middleware function
+  console.log("Base URL");
+  // If we don't write the next() function then the request will hung up and not move onto the next middleware function
+  next();
+} ,function (request, response) {
   console.log(request.query);
   const {
     query: { filter, value },
@@ -47,20 +67,22 @@ app.get("/api/users", function (request, response) {
 
 // request.params is an object which shows the route variable as an object and request.params.id will give us the value of the route variable.
 
-app.get("/api/users/:id", (request, response) => {
-  // Validation for your incoming GET requests
-  const parsedId = parseInt(request.params.id);
-  console.log(parsedId);
-  if (isNaN(parsedId)) {
-    return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID " });
+app.get(
+  "/api/users/:id", (request, response) => {
+    // Validation for your incoming GET requests
+    const parsedId = parseInt(request.params.id);
+    console.log(parsedId);
+    if (isNaN(parsedId)) {
+      return response.sendStatus(400).send({ msg: "Bad Request. Invalid ID " });
+    }
+    const findUser = mockUsers.find((user) => user.id === parsedId);
+    if (!findUser) {
+      return response.sendStatus(404);
+    }
+    return response.send(findUser);
+    // return response.send(mockUsers[parsedId - 1]);
   }
-  const findUser = mockUsers.find((user) => user.id === parsedID);
-  if (!findUser) {
-    return response.sendStatus(404);
-  }
-  return response.send(findUser);
-  // return response.send(mockUsers[parsedID - 1]);
-});
+);
 
 app.get("/api/products", (request, response) => {
   response.send([{ id: 1, product: "Chicken Shwarma", price: 90 }]);
@@ -101,6 +123,8 @@ app.put("/api/users/:id", (request, response) => {
 
 // A patch request is used when we want to change certain fields only because say a user has 10 different fields then we obviously wpuldn't want to set all the fields everytime right
 
+app.use(loggingMiddleware); // If I declare the middleware here then the routes before this line will not be able to access the middleare function
+
 app.patch("/api/users/:id", (request, resposne) => {
   const {
     body,
@@ -125,8 +149,8 @@ app.delete("/api/users/:id", (request, response) => {
   } = request;
 
   const parsedId = parseInt(id);
-  if(isNaN(parsedId)) return response.sendStatus(400);
-  const findUserIndex = mockUsers.findIndex(user => user.id === parsedId);
+  if (isNaN(parsedId)) return response.sendStatus(400);
+  const findUserIndex = mockUsers.findIndex((user) => user.id === parsedId);
   if (findUserIndex === -1) return response.sendStatus(404);
   mockUsers.splice(findUserIndex, 1);
 });
