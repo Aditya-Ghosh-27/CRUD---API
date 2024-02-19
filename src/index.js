@@ -12,8 +12,25 @@ const loggingMiddleware = (request, response, next) => {
   next();
 };
 
+const resolveUserById = (request, response, next) => {
+  const {
+    params: { id }
+  } = request;
+
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    return response.sendStatus(400);
+  }
+
+  const findUserIndex = mockUsers.findIndex((user) => user.id === parsedId);
+
+  if (findUserIndex === -1) return response.sendStatus(404);
+  request.findUserIndex = findUserIndex;
+  next();
+}
+
 // Registering a middleware function globally so that everytime I hit a specific route, the middleware gets called immidiately
-// app.use(loggingMiddleware);
+app.use(loggingMiddleware);
 
 const mockUsers = [
   { id: 1, username: "aditya", displayName: "Aditya" },
@@ -35,8 +52,17 @@ const mockUsers = [
 //   response.sendStatus(201).json({ msg: "Hello" });
 // });
 
-// This is used lets the input request is missing the authorization token then you don't wanna continue to the next middleware.
-app.get("/", (request, response) => {
+// This is used when lets say the input request is missing the authorization token then you don't wanna continue to the next middleware.
+app.get("/", (request, response, next) => {
+  console.log(`Base URl 1`);
+  next();
+// },(request, response, next) => {
+//   console.log(`Base URl 2`);
+//   next();
+// },(request, response, next) => {
+//   console.log(`Base URL 3`);
+//   next();
+// }, (request, response) => {
   return response.sendStatus(201).json({ msg: "Hello" });
 });
 
@@ -61,7 +87,13 @@ app.get("/api/users", (request, response, next) => { //Another way of declaring 
       mockUsers.filter((user) => user.username.includes(value))
     );
   }
+  return response.send(mockUsers);
 });
+
+app.use(loggingMiddleware, function(request, response, next){
+  console.log('Finished logging...');
+  next();
+})
 
 // Route Parameters
 
@@ -102,57 +134,45 @@ app.post("/api/users", (request, response) => {
 // The main difference is that a PUT request is used to replace a resource entirely, while a PATCH request is used to partially update a resource.
 // We are going to setup a put request to update a user by its id
 
-app.put("/api/users/:id", (request, response) => {
-  const {
-    body,
-    params: { id },
-  } = request;
-
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
-    return response.sendStatus(400);
-  }
-
-  const findUserIndex = mockUsers.findIndex((user) => user.id === parsedId);
-
-  if (findUserIndex === -1) return response.sendStatus(404);
-
-  mockUsers[findUserIndex] = { id: parsedId, ...body };
+app.put("/api/users/:id", resolveUserById, (request, response, next) => {
+  const { body, findUserIndex } = request;
+  mockUsers[findUserIndex] = { id: mockUsers[findUserIndex].id, ...body };
   return response.sendStatus(200);
 });
 
 // A patch request is used when we want to change certain fields only because say a user has 10 different fields then we obviously wpuldn't want to set all the fields everytime right
 
-app.use(loggingMiddleware); // If I declare the middleware here then the routes before this line will not be able to access the middleare function
+// app.use(loggingMiddleware); // If I declare the middleware here then the routes before this line will not be able to access the middleare function
 
-app.patch("/api/users/:id", (request, resposne) => {
-  const {
-    body,
-    params: { id },
-  } = request;
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) return response.sendStatus(400);
-  const findUserIndex = mockUsers.findIndex((user) => {
-    user.id === parsedId;
-  });
-
-  if (findUserIndex === -1) return response.sendStatus(404);
-
-  mockUsers[findUserIndex] = { ...mockUsers[findUserIndex], ...body };
+app.patch("/api/users/:id", resolveUserById, (request, response) => {
+  const { body, findUserIndex } = request;
+  mockUsers[findUserIndex] = { id: mockUsers[findUserIndex].id, ...body };
+  return response.sendStatus(200);
 });
 
 // Delete request
 
-app.delete("/api/users/:id", (request, response) => {
-  const {
-    params: { id },
-  } = request;
-
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) return response.sendStatus(400);
-  const findUserIndex = mockUsers.findIndex((user) => user.id === parsedId);
-  if (findUserIndex === -1) return response.sendStatus(404);
+app.delete("/api/users/:id", resolveUserById, (request, response) => {
+  const { findUserIndex } = request;
   mockUsers.splice(findUserIndex, 1);
+  return response.sendStatus(200);
 });
 
 app.listen(PORT, () => console.log(`Server started at PORT: ${PORT}`));
+
+
+
+
+
+
+// const {
+//   body,
+//   params: { id },
+// } = request;
+// const parsedId = parseInt(id);
+// if (isNaN(parsedId)) return response.sendStatus(400);
+// const findUserIndex = mockUsers.findIndex((user) => {
+//   user.id === parsedId;
+// });
+
+// if (findUserIndex === -1) return response.sendStatus(404);
