@@ -74,6 +74,7 @@ app.get("/", (request, response, next) => {
 // I can use this validation chain to keep on calling more methods which in turn will return an instance of the validation.
 // query(filter) will make that it is a string and is also not empty
 app.get(
+  // Validating query parameters thorugh query function
   "/api/users",
   query("filter")
     .isString()
