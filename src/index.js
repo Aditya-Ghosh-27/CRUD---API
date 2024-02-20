@@ -1,6 +1,7 @@
 import express, { request, response } from "express"; // imports the entire express library from the node modules
-import { query, validationResult } from "express-validator";
+import { query, validationResult, body } from "express-validator";
 // The validationResult function in express-validator is used to extract the validation errors from a request and make them available in a Result object. This function takes a request object as its argument and returns a Result object. The Result object contains an array of ValidationError objects, which represent the validation errors that occurred during the request.
+// body is used to validate request body
 const app = express(); // returns an instance of the exprress app
 
 const PORT = process.env.PORT || 3000; //So process.env.PORT || 3000 means: whatever is in the environment variable PORT, or 3000 if there's nothing there.
@@ -138,13 +139,26 @@ app.get("/api/products", (request, response) => {
 
 // Creating/adding a new resource - POST request and send all that data on a payload or a request body and this request body can be referenced from the request object
 
-app.post("/api/users", (request, response) => {
-  // We need a middleware function to parse the incoming the request
-  const { body } = request;
-  const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
-  mockUsers.push(newUser);
-  return response.send(mockUsers);
-});
+app.post(
+  "/api/users",
+  [body("username")
+  .isString()
+  .withMessage(" Username must be a string! ")
+  .notEmpty()
+  .withMessage(" Must not be empty ")
+  .isLength({ min: 5, max: 32 })
+  .withMessage(" Must be atleast of length 5 and maximum 32 "),
+  body("displayname").notEmpty()],
+  (request, response) => {
+    const result = validationResult(request);
+    console.log(result);
+    // We need a middleware function to parse the incoming the request
+    const { body } = request;
+    const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
+    mockUsers.push(newUser);
+    return response.send(mockUsers);
+  }
+);
 
 // PUT requests
 // The main difference is that a PUT request is used to replace a resource entirely, while a PATCH request is used to partially update a resource.
