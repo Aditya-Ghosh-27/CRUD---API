@@ -1,5 +1,6 @@
 import express, { request, response } from "express"; // imports the entire express library from the node modules
-import { query, validationResult, body, matchedData } from "express-validator";
+import { query, validationResult, body, matchedData, checkSchema } from "express-validator";
+import { createUserValidationSchema } from './utils/validationSchemas.js';
 // The validationResult function in express-validator is used to extract the validation errors from a request and make them available in a Result object. This function takes a request object as its argument and returns a Result object. The Result object contains an array of ValidationError objects, which represent the validation errors that occurred during the request.
 // body is used to validate request body
 const app = express(); // returns an instance of the exprress app
@@ -143,14 +144,7 @@ app.post(
   // we can use a schema to make it look more readable 
   // A schema is basically an object that has all your validator defined
   "/api/users",
-  [body("username")
-  .isString()
-  .withMessage(" Username must be a string! ")
-  .notEmpty()
-  .withMessage(" Must not be empty ")
-  .isLength({ min: 5, max: 32 })
-  .withMessage(" Must be atleast of length 5 and maximum 32 "),
-  body("displayName").notEmpty().withMessage('Pagla naki?')],
+  checkSchema(createUserValidationSchema), 
   (request, response) => {
     const result = validationResult(request);
     console.log(result);
