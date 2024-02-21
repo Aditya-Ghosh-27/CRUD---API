@@ -1,5 +1,5 @@
 import express, { request, response } from "express"; // imports the entire express library from the node modules
-import { query, validationResult, body } from "express-validator";
+import { query, validationResult, body, matchedData } from "express-validator";
 // The validationResult function in express-validator is used to extract the validation errors from a request and make them available in a Result object. This function takes a request object as its argument and returns a Result object. The Result object contains an array of ValidationError objects, which represent the validation errors that occurred during the request.
 // body is used to validate request body
 const app = express(); // returns an instance of the exprress app
@@ -140,6 +140,8 @@ app.get("/api/products", (request, response) => {
 // Creating/adding a new resource - POST request and send all that data on a payload or a request body and this request body can be referenced from the request object
 
 app.post(
+  // we can use a schema to make it look more readable 
+  // A schema is basically an object that has all your validator defined
   "/api/users",
   [body("username")
   .isString()
@@ -148,13 +150,18 @@ app.post(
   .withMessage(" Must not be empty ")
   .isLength({ min: 5, max: 32 })
   .withMessage(" Must be atleast of length 5 and maximum 32 "),
-  body("displayname").notEmpty()],
+  body("displayName").notEmpty().withMessage('Pagla naki?')],
   (request, response) => {
     const result = validationResult(request);
     console.log(result);
+
+    if(!result.isEmpty()){
+      return response.status(400).send({ errors: result.array() });
+    }
+
+    const data = matchedData(request);
     // We need a middleware function to parse the incoming the request
-    const { body } = request;
-    const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body };
+    const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...data };
     mockUsers.push(newUser);
     return response.send(mockUsers);
   }
